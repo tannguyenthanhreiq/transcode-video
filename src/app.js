@@ -20,4 +20,5 @@ const url = `http://${host}:${port}`;
 
 app.listen(port, () => {
   console.log(`serverr is running ${url} and listening on port ${port}`);
+  console.log("hello world");
 });
