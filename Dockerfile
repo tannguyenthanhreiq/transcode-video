@@ -3,6 +3,9 @@ FROM node:16-alpine
 
 WORKDIR /app
 
+# Override the default entrypoint
+ENTRYPOINT []
+
 # Copy package*.json files and install dependencies
 COPY package*.json ./
 RUN npm install --only=production
