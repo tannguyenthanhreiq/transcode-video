@@ -1,0 +1,12 @@
+# Installer stage
+FROM node:14-slim 
+WORKDIR /app 
+COPY package.json yarn.lock ./
+RUN yarn install --production 
+COPY . .
+RUN chmod -R ugo+rwx .
+RUN addgroup app && adduser --system --ingroup app app
+USER app
+# CMD [ "yarn", "start" ]
+ENTRYPOINT ["/bin/sh", "-c", "/docker-entrypoint.sh" ]
+
