@@ -12,4 +12,5 @@ ENV HOST 0.0.0.0
 
 # Copy the entrypoint script and set it as the entrypoint
 COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
