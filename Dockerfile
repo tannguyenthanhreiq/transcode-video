@@ -1,14 +1,11 @@
 # Installer stage
-FROM node:14-alpine
+FROM node:16-alpine
 
 WORKDIR /app
 
-# Install system dependencies (ffmpeg)
-RUN apk update && apk add --no-cache ffmpeg
-
 # Copy package*.json files and install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy the rest of the application files
 COPY . .
