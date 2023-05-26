@@ -36,18 +36,18 @@ const apiRoutes = () => {
       if (videoHeight >= 720) resolutions.push(720);
       if (videoHeight >= 1080) resolutions.push(1080);
 
-      // await createOutputDirectories(outputPath);
-      // await transcodeVideo(inputPath, outputPath, resolutions);
-      // createMasterPlaylist(outputPath, resolutions);
-      // await transferFileToGcs(bucketName, outputPath);
-      await sendMetadataToServer({
-        metadata: {
-          lectureId,
-          transcodedVideoUrl: `https://storage.googleapis.com/${bucketName}/transcoded-videos/${instructorId}/${lectureId}/manifest.m3u8`,
-          status: "finished",
-        },
-      });
-      // deleteFolderDirectory(outputPath);
+      await createOutputDirectories(outputPath);
+      await transcodeVideo(inputPath, outputPath, resolutions);
+      createMasterPlaylist(outputPath, resolutions);
+      await transferFileToGcs(bucketName, outputPath);
+      // await sendMetadataToServer({
+      //   metadata: {
+      //     lectureId,
+      //     transcodedVideoUrl: `https://storage.googleapis.com/${bucketName}/transcoded-videos/${instructorId}/${lectureId}/manifest.m3u8`,
+      //     status: "finished",
+      //   },
+      // });
+      deleteFolderDirectory(outputPath);
       res.status(200).json({ message: "Video transcoded" });
     } catch (error) {
       res.json(error.message);
@@ -103,7 +103,7 @@ async function getVideoInfo(inputPath) {
 
 // Step 3: Transcode video with compatible bitrates
 async function transcodeVideo(inputPath, outputPath, resolutions) {
-  console.log("Starting transcode video");
+  console.log("Starting transcode video for ", inputPath);
   const commands = [];
 
   if (resolutions.includes(360)) {
@@ -145,32 +145,40 @@ async function transcodeVideo(inputPath, outputPath, resolutions) {
 }
 
 function createMasterPlaylist(outputPath, resolutions) {
-  let masterPlaylistContent = "#EXTM3U\n#EXT-X-VERSION:3\n";
-  if (resolutions.includes(360)) {
-    masterPlaylistContent +=
-      "#EXT-X-STREAM-INF:BANDWIDTH=960000,RESOLUTION=640x360\n360p.m3u8\n";
-  }
-  if (resolutions.includes(480)) {
-    masterPlaylistContent +=
-      "#EXT-X-STREAM-INF:BANDWIDTH=1648000,RESOLUTION=842x480\n480p.m3u8\n";
-  }
-  if (resolutions.includes(720)) {
-    masterPlaylistContent +=
-      "#EXT-X-STREAM-INF:BANDWIDTH=5408000,RESOLUTION=1280x720\n720p.m3u8\n";
-  }
-  if (resolutions.includes(1080)) {
-    masterPlaylistContent +=
-      "#EXT-X-STREAM-INF:BANDWIDTH=10208000,RESOLUTION=1920x1080\n1080p.m3u8\n";
-  }
-
-  fs.writeFile(`${outputPath}/manifest.m3u8`, masterPlaylistContent, (err) => {
-    if (err) {
-      console.error(`Error writing master playlist file: ${err.message}`);
-      return;
+  try {
+    let masterPlaylistContent = "#EXTM3U\n#EXT-X-VERSION:3\n";
+    if (resolutions.includes(360)) {
+      masterPlaylistContent +=
+        "#EXT-X-STREAM-INF:BANDWIDTH=960000,RESOLUTION=640x360\n360p.m3u8\n";
+    }
+    if (resolutions.includes(480)) {
+      masterPlaylistContent +=
+        "#EXT-X-STREAM-INF:BANDWIDTH=1648000,RESOLUTION=842x480\n480p.m3u8\n";
+    }
+    if (resolutions.includes(720)) {
+      masterPlaylistContent +=
+        "#EXT-X-STREAM-INF:BANDWIDTH=5408000,RESOLUTION=1280x720\n720p.m3u8\n";
+    }
+    if (resolutions.includes(1080)) {
+      masterPlaylistContent +=
+        "#EXT-X-STREAM-INF:BANDWIDTH=10208000,RESOLUTION=1920x1080\n1080p.m3u8\n";
     }
 
-    console.log("Master playlist file created.");
-  });
+    fs.writeFile(
+      `${outputPath}/manifest.m3u8`,
+      masterPlaylistContent,
+      (err) => {
+        if (err) {
+          console.error(`Error writing master playlist file: ${err.message}`);
+          return;
+        }
+
+        console.log("Master playlist file created.");
+      }
+    );
+  } catch (error) {
+    throw new Error(`Error creating master playlist: ${error}`);
+  }
 }
 
 async function createOutputDirectories(outputPath) {

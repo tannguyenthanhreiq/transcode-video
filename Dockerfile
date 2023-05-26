@@ -16,7 +16,6 @@ COPY . .
 EXPOSE 8080
 ENV PORT 8080
 ENV HOST 0.0.0.0
-ENV GCLOUD_PROJECT re-academy 
 
 # Run the application
 CMD ["yarn", "start"]
